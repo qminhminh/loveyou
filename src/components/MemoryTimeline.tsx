@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Heart, Calendar, MapPin } from 'lucide-react';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase/config';
 
 interface Memory {
-  id: number;
+  id: string;
   title: string;
   date: string;
   description: string;
   location?: string;
-  image: string;
+  imageUrl: string;
+  createdAt: Date;
 }
 
 interface MemoryTimelineProps {
@@ -17,52 +20,71 @@ interface MemoryTimelineProps {
 const MemoryTimeline: React.FC<MemoryTimelineProps> = ({ onNext }) => {
   const [currentMemory, setCurrentMemory] = useState(0);
   const [showContent, setShowContent] = useState(false);
-
-  const memories: Memory[] = [
-    {
-      id: 1,
-      title: "Lần đầu gặp nhau",
-      date: "15/03/2023",
-      description: "Khoảnh khắc đầu tiên anh nhìn thấy em, tim anh đã biết ngay đó là định mệnh...",
-      location: "Quán cà phê nhỏ",
-      image: "https://images.pexels.com/photos/2363825/pexels-photo-2363825.jpeg?auto=compress&cs=tinysrgb&w=800"
-    },
-    {
-      id: 2,
-      title: "Tin nhắn đầu tiên",
-      date: "18/03/2023",
-      description: "Anh run run gõ từng chữ, sợ em sẽ không trả lời. Nhưng em đã trả lời, và trái tim anh như được thắp sáng...",
-      image: "https://images.pexels.com/photos/1262971/pexels-photo-1262971.jpeg?auto=compress&cs=tinysrgb&w=800"
-    },
-    {
-      id: 3,
-      title: "Buổi hẹn đầu tiên",
-      date: "25/03/2023",
-      description: "Chúng ta cùng đi xem phim, anh thậm chí không nhớ phim gì vì chỉ chăm chú nhìn nụ cười của em...",
-      location: "Rạp chiếu phim",
-      image: "https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=800"
-    },
-    {
-      id: 4,
-      title: "Lần đầu nắm tay",
-      date: "02/04/2023",
-      description: "Khi anh nắm lấy tay em, cả thế giới như ngừng lại. Ấm áp và hoàn hảo...",
-      location: "Công viên",
-      image: "https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=800"
-    },
-    {
-      id: 5,
-      title: "Kỷ niệm đặc biệt",
-      date: "20/05/2023",
-      description: "Ngày chúng ta cùng xem hoàng hôn, em nói rằng em muốn có thêm nhiều khoảnh khắc như thế này...",
-      location: "Bãi biển",
-      image: "https://images.pexels.com/photos/1416736/pexels-photo-1416736.jpeg?auto=compress&cs=tinysrgb&w=800"
-    }
-  ];
+  const [memories, setMemories] = useState<Memory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setShowContent(true);
+    loadMemories();
   }, []);
+
+  const loadMemories = async () => {
+    console.log('🔄 Bắt đầu tải dữ liệu từ Firebase...');
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log('📡 Kết nối đến Firestore...');
+      const querySnapshot = await getDocs(collection(db, 'memories'));
+      console.log('✅ Lấy được dữ liệu từ Firestore:', querySnapshot.size, 'documents');
+      
+      const memoriesData = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        console.log('📄 Document data:', data);
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate() || new Date()
+        };
+      }) as Memory[];
+      
+      console.log('🎯 Memories đã xử lý:', memoriesData);
+      
+      // Sắp xếp theo ngày tạo mới nhất
+      const sortedMemories = memoriesData.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      setMemories(sortedMemories);
+      console.log('✅ Đã tải thành công', sortedMemories.length, 'kỷ niệm');
+      
+    } catch (error) {
+      console.error('❌ Lỗi khi tải dữ liệu:', error);
+      setError(error instanceof Error ? error.message : 'Lỗi không xác định');
+      
+      // Fallback to default memories if Firebase fails
+      console.log('🔄 Sử dụng dữ liệu mặc định...');
+      setMemories([
+        {
+          id: '1',
+          title: "Lần đầu gặp nhau",
+          date: "15/03/2023",
+          description: "Khoảnh khắc đầu tiên anh nhìn thấy em, tim anh đã biết ngay đó là định mệnh...",
+          location: "Quán cà phê nhỏ",
+          imageUrl: "https://images.pexels.com/photos/2363825/pexels-photo-2363825.jpeg?auto=compress&cs=tinysrgb&w=800",
+          createdAt: new Date()
+        },
+        {
+          id: '2',
+          title: "Tin nhắn đầu tiên",
+          date: "18/03/2023",
+          description: "Anh run run gõ từng chữ, sợ em sẽ không trả lời. Nhưng em đã trả lời, và trái tim anh như được thắp sáng...",
+          imageUrl: "https://images.pexels.com/photos/1262971/pexels-photo-1262971.jpeg?auto=compress&cs=tinysrgb&w=800",
+          createdAt: new Date()
+        }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const nextMemory = () => {
     if (currentMemory < memories.length - 1) {
@@ -75,6 +97,38 @@ const MemoryTimeline: React.FC<MemoryTimelineProps> = ({ onNext }) => {
       setCurrentMemory(currentMemory - 1);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+          <p className="text-pink-600">Đang tải kỷ niệm...</p>
+          {error && (
+            <p className="text-red-500 text-sm mt-2">Lỗi: {error}</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (memories.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8">
+        <div className="text-center">
+          <Heart className="w-16 h-16 text-pink-400 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Chưa có kỷ niệm nào</h2>
+          <p className="text-gray-600 mb-8">Hãy thêm những kỷ niệm đẹp của chúng ta</p>
+          <button
+            onClick={onNext}
+            className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-3 rounded-full hover:shadow-lg transition-all duration-300"
+          >
+            Tiếp tục
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const currentMem = memories[currentMemory];
 
@@ -104,9 +158,13 @@ const MemoryTimeline: React.FC<MemoryTimelineProps> = ({ onNext }) => {
             <div className="relative group">
               <div className="aspect-square rounded-2xl overflow-hidden shadow-xl transform group-hover:rotate-2 transition-transform duration-500">
                 <img 
-                  src={currentMem.image} 
+                  src={currentMem.imageUrl} 
                   alt={currentMem.title}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  onError={(e) => {
+                    console.error('❌ Lỗi tải ảnh:', currentMem.imageUrl);
+                    e.currentTarget.src = 'https://via.placeholder.com/400x400/pink/white?text=Ảnh+không+tải+được';
+                  }}
                 />
               </div>
               {/* Polaroid Effect */}
