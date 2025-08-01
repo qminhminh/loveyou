@@ -125,6 +125,24 @@
 
 - **Trang chính**: `http://localhost:5173/`
 - **Admin Panel**: `http://localhost:5173/admin`
+- **Firebase Test**: `http://localhost:5173/test`
+- **Khởi tạo dữ liệu**: `http://localhost:5173/init`
+
+## 🚨 Khắc Phục Vấn Đề "Không Lấy Được Ảnh"
+
+### Nếu web app hiển thị "Đang tải kỷ niệm..." mãi:
+
+1. **Truy cập**: `http://localhost:5173/init`
+2. **Click "Kiểm tra dữ liệu hiện tại"** để xem có gì trong database
+3. **Nếu chưa có gì, click "Khởi tạo dữ liệu test"**
+4. **Sau khi khởi tạo xong, refresh trang chính**
+5. **Vào trang "Hành Trình Của Chúng Ta"** để xem kết quả
+
+### Nếu vẫn không được:
+
+1. **Truy cập**: `http://localhost:5173/test`
+2. **Click "Bắt đầu Test Firebase"** để kiểm tra kết nối
+3. **Xem kết quả** và làm theo hướng dẫn
 
 ---
 

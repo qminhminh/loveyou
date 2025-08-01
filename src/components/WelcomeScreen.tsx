@@ -80,51 +80,6 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onNext }) => {
       <div className="absolute bottom-32 left-32 animate-float">
         <Heart className="w-5 h-5 text-pink-400" />
       </div>
-
-      <style jsx>{`
-        @keyframes typewriter {
-          from { width: 0 }
-          to { width: 100% }
-        }
-        
-        @keyframes heartbeat {
-          0%, 50%, 100% { transform: scale(1) }
-          25% { transform: scale(1.1) }
-        }
-        
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg) }
-          50% { transform: translateY(-20px) rotate(10deg) }
-        }
-        
-        @keyframes float-delayed {
-          0%, 100% { transform: translateY(0px) rotate(0deg) }
-          50% { transform: translateY(-15px) rotate(-10deg) }
-        }
-        
-        .animate-fade-in-up {
-          animation: fade-in-up 1s ease-out;
-        }
-        
-        .animate-float {
-          animation: float 4s ease-in-out infinite;
-        }
-        
-        .animate-float-delayed {
-          animation: float-delayed 3s ease-in-out infinite 1s;
-        }
-      `}</style>
     </div>
   );
 };

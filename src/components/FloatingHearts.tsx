@@ -61,29 +61,6 @@ const FloatingHearts: React.FC = () => {
           />
         </div>
       ))}
-
-      <style jsx>{`
-        @keyframes float-up {
-          0% {
-            transform: translateY(0) rotate(0deg);
-            opacity: 0;
-          }
-          10% {
-            opacity: 0.6;
-          }
-          90% {
-            opacity: 0.3;
-          }
-          100% {
-            transform: translateY(-100vh) rotate(360deg);
-            opacity: 0;
-          }
-        }
-        
-        .animate-float-up {
-          animation: float-up linear forwards;
-        }
-      `}</style>
     </div>
   );
 };

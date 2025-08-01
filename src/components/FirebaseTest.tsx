@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { collection, addDoc, getDocs } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../firebase/config';
 
@@ -31,7 +31,7 @@ const FirebaseTest: React.FC = () => {
 
       // Test 3: Xóa document test
       setTestResult(prev => prev + '🗑️ Test 3: Xóa document test...\n');
-      await testDoc.delete();
+      await deleteDoc(doc(db, 'memories', testDoc.id));
       setTestResult(prev => prev + '✅ Xóa document thành công\n');
 
       // Test 4: Test Storage

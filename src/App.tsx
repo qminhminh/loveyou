@@ -4,6 +4,7 @@ import MainApp from './components/MainApp';
 import AdminPanel from './components/AdminPanel';
 import FirebaseTest from './components/FirebaseTest';
 import FirebaseDataInitializer from './components/FirebaseDataInitializer';
+import FirebaseDebugger from './components/FirebaseDebugger';
 
 function App() {
   return (
@@ -19,6 +20,9 @@ function App() {
       
       {/* Route init - khởi tạo dữ liệu */}
       <Route path="/init" element={<FirebaseDataInitializer />} />
+      
+      {/* Route debug - debug chi tiết */}
+      <Route path="/debug" element={<FirebaseDebugger />} />
       
       {/* Redirect mặc định về trang chính */}
       <Route path="*" element={<Navigate to="/" replace />} />

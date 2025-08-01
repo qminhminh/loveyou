@@ -150,55 +150,6 @@ const CelebrationPage: React.FC = () => {
           </div>
         )}
       </div>
-
-      <style jsx>{`
-        @keyframes heartFall {
-          to {
-            transform: translateY(100vh) rotate(360deg);
-            opacity: 0;
-          }
-        }
-        
-        @keyframes heartbeat {
-          0%, 50%, 100% { transform: scale(1) }
-          25% { transform: scale(1.1) }
-          75% { transform: scale(1.05) }
-        }
-        
-        @keyframes float-celebration {
-          0%, 100% { 
-            transform: translateY(0px) rotate(0deg) scale(1);
-            opacity: 0.3;
-          }
-          50% { 
-            transform: translateY(-40px) rotate(180deg) scale(1.2);
-            opacity: 0.7;
-          }
-        }
-        
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(50px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        .animate-heartbeat {
-          animation: heartbeat 2s ease-in-out infinite;
-        }
-        
-        .animate-float-celebration {
-          animation: float-celebration 4s ease-in-out infinite;
-        }
-        
-        .animate-fade-in-up {
-          animation: fade-in-up 1.5s ease-out;
-        }
-      `}</style>
     </div>
   );
 };

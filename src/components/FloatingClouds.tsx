@@ -67,21 +67,6 @@ const FloatingClouds: React.FC = () => {
           />
         </div>
       ))}
-
-      <style jsx>{`
-        @keyframes drift {
-          from {
-            transform: translateX(-100px);
-          }
-          to {
-            transform: translateX(calc(100vw + 100px));
-          }
-        }
-        
-        .animate-drift {
-          animation: drift linear infinite;
-        }
-      `}</style>
     </div>
   );
 };

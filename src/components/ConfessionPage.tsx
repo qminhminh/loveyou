@@ -156,67 +156,6 @@ const ConfessionPage: React.FC<ConfessionPageProps> = ({ onConfess }) => {
           </p>
         )}
       </div>
-
-      <style jsx>{`
-        @keyframes typewriter {
-          from { 
-            width: 0;
-            opacity: 0;
-          }
-          1% {
-            opacity: 1;
-          }
-          to { 
-            width: 100%;
-            opacity: 1;
-          }
-        }
-        
-        @keyframes heartExplosion {
-          0% {
-            transform: scale(0) rotate(0deg);
-            opacity: 1;
-          }
-          50% {
-            transform: scale(1.5) rotate(180deg);
-            opacity: 0.8;
-          }
-          100% {
-            transform: scale(0.5) rotate(360deg) translateY(-200px);
-            opacity: 0;
-          }
-        }
-        
-        @keyframes float-slow {
-          0%, 100% { 
-            transform: translateY(0px) rotate(0deg);
-            opacity: 0.3;
-          }
-          50% { 
-            transform: translateY(-30px) rotate(180deg);
-            opacity: 0.1;
-          }
-        }
-        
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        .animate-float-slow {
-          animation: float-slow 6s ease-in-out infinite;
-        }
-        
-        .animate-fade-in-up {
-          animation: fade-in-up 1s ease-out;
-        }
-      `}</style>
     </div>
   );
 };

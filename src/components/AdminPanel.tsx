@@ -39,6 +39,12 @@ const AdminPanel: React.FC = () => {
       const querySnapshot = await getDocs(collection(db, 'memories'));
       console.log('✅ AdminPanel: Lấy được', querySnapshot.size, 'documents từ Firestore');
       
+      if (querySnapshot.size === 0) {
+        console.log('📭 AdminPanel: Firestore trống, tạo dữ liệu mặc định...');
+        await createDefaultMemories();
+        return; // loadMemories sẽ được gọi lại từ createDefaultMemories
+      }
+      
       const memoriesData = querySnapshot.docs.map(doc => {
         const data = doc.data();
         console.log('📄 AdminPanel: Document data:', data);
@@ -55,6 +61,68 @@ const AdminPanel: React.FC = () => {
     } catch (error) {
       console.error('❌ AdminPanel: Lỗi khi tải dữ liệu:', error);
       alert('Có lỗi khi tải danh sách kỷ niệm: ' + (error instanceof Error ? error.message : 'Lỗi không xác định'));
+    }
+  };
+
+  const createDefaultMemories = async () => {
+    console.log('🔄 AdminPanel: Tạo dữ liệu mặc định...');
+    
+    const defaultMemories = [
+      {
+        title: "Lần đầu gặp nhau",
+        date: "2024-01-15",
+        description: "Khoảnh khắc đầu tiên anh nhìn thấy em, tim anh đã biết ngay đó là định mệnh. Em mặc chiếc váy trắng, nụ cười tỏa sáng như ánh nắng ban mai...",
+        location: "Quán cà phê nhỏ",
+        imageUrl: "https://images.pexels.com/photos/2363825/pexels-photo-2363825.jpeg?auto=compress&cs=tinysrgb&w=800",
+        createdAt: new Date()
+      },
+      {
+        title: "Tin nhắn đầu tiên",
+        date: "2024-01-18",
+        description: "Anh run run gõ từng chữ, sợ em sẽ không trả lời. Nhưng em đã trả lời, và trái tim anh như được thắp sáng. Từ đó, mỗi tin nhắn đều là một món quà quý giá...",
+        imageUrl: "https://images.pexels.com/photos/1262971/pexels-photo-1262971.jpeg?auto=compress&cs=tinysrgb&w=800",
+        createdAt: new Date()
+      },
+      {
+        title: "Buổi hẹn đầu tiên",
+        date: "2024-01-25",
+        description: "Chúng ta cùng đi xem phim, anh thậm chí không nhớ phim gì vì chỉ chăm chú nhìn nụ cười của em. Khoảnh khắc đó, anh biết mình đã yêu em từ lâu rồi...",
+        location: "Rạp chiếu phim",
+        imageUrl: "https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=800",
+        createdAt: new Date()
+      },
+      {
+        title: "Lần đầu nắm tay",
+        date: "2024-02-02",
+        description: "Khi anh nắm lấy tay em, cả thế giới như ngừng lại. Ấm áp và hoàn hảo. Em không rút tay ra, và anh biết đó là dấu hiệu của tình yêu...",
+        location: "Công viên",
+        imageUrl: "https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=800",
+        createdAt: new Date()
+      },
+      {
+        title: "Kỷ niệm đặc biệt",
+        date: "2024-02-20",
+        description: "Ngày chúng ta cùng xem hoàng hôn, em nói rằng em muốn có thêm nhiều khoảnh khắc như thế này. Anh hứa sẽ tạo ra vô vàn khoảnh khắc đẹp cho em...",
+        location: "Bãi biển",
+        imageUrl: "https://images.pexels.com/photos/1416736/pexels-photo-1416736.jpeg?auto=compress&cs=tinysrgb&w=800",
+        createdAt: new Date()
+      }
+    ];
+
+    try {
+      const addPromises = defaultMemories.map(memory => 
+        addDoc(collection(db, 'memories'), memory)
+      );
+      
+      await Promise.all(addPromises);
+      console.log('✅ AdminPanel: Đã tạo', defaultMemories.length, 'kỷ niệm mặc định');
+      
+      // Load lại dữ liệu sau khi tạo
+      await loadMemories();
+      
+    } catch (error) {
+      console.error('❌ AdminPanel: Lỗi khi tạo dữ liệu mặc định:', error);
+      alert('Không thể tạo dữ liệu mặc định: ' + (error instanceof Error ? error.message : 'Lỗi không xác định'));
     }
   };
 

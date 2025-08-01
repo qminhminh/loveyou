@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Heart, Calendar, MapPin } from 'lucide-react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, addDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 interface Memory {
@@ -24,24 +24,87 @@ const MemoryTimeline: React.FC<MemoryTimelineProps> = ({ onNext }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Dữ liệu mặc định để hiển thị ngay lập tức
+  const fallbackMemories: Memory[] = [
+    {
+      id: '1',
+      title: "Lần đầu gặp nhau",
+      date: "15/03/2023",
+      description: "Khoảnh khắc đầu tiên anh nhìn thấy em, tim anh đã biết ngay đó là định mệnh. Em mặc chiếc váy trắng, nụ cười tỏa sáng như ánh nắng ban mai...",
+      location: "Quán cà phê nhỏ",
+      imageUrl: "https://images.pexels.com/photos/2363825/pexels-photo-2363825.jpeg?auto=compress&cs=tinysrgb&w=800",
+      createdAt: new Date()
+    },
+    {
+      id: '2',
+      title: "Tin nhắn đầu tiên",
+      date: "18/03/2023",
+      description: "Anh run run gõ từng chữ, sợ em sẽ không trả lời. Nhưng em đã trả lời, và trái tim anh như được thắp sáng. Từ đó, mỗi tin nhắn đều là một món quà quý giá...",
+      imageUrl: "https://images.pexels.com/photos/1262971/pexels-photo-1262971.jpeg?auto=compress&cs=tinysrgb&w=800",
+      createdAt: new Date()
+    },
+    {
+      id: '3',
+      title: "Buổi hẹn đầu tiên",
+      date: "25/03/2023",
+      description: "Chúng ta cùng đi xem phim, anh thậm chí không nhớ phim gì vì chỉ chăm chú nhìn nụ cười của em. Khoảnh khắc đó, anh biết mình đã yêu em từ lâu rồi...",
+      location: "Rạp chiếu phim",
+      imageUrl: "https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=800",
+      createdAt: new Date()
+    },
+    {
+      id: '4',
+      title: "Lần đầu nắm tay",
+      date: "02/04/2023",
+      description: "Khi anh nắm lấy tay em, cả thế giới như ngừng lại. Ấm áp và hoàn hảo. Em không rút tay ra, và anh biết đó là dấu hiệu của tình yêu...",
+      location: "Công viên",
+      imageUrl: "https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=800",
+      createdAt: new Date()
+    },
+    {
+      id: '5',
+      title: "Kỷ niệm đặc biệt",
+      date: "20/05/2023",
+      description: "Ngày chúng ta cùng xem hoàng hôn, em nói rằng em muốn có thêm nhiều khoảnh khắc như thế này. Anh hứa sẽ tạo ra vô vàn khoảnh khắc đẹp cho em...",
+      location: "Bãi biển",
+      imageUrl: "https://images.pexels.com/photos/1416736/pexels-photo-1416736.jpeg?auto=compress&cs=tinysrgb&w=800",
+      createdAt: new Date()
+    }
+  ];
+
   useEffect(() => {
     setShowContent(true);
-    loadMemories();
+    
+    // Hiển thị dữ liệu mặc định ngay lập tức
+    setMemories(fallbackMemories);
+    setLoading(false);
+    
+    // Sau đó thử load từ Firebase trong background
+    loadMemoriesFromFirebase();
   }, []);
 
-  const loadMemories = async () => {
-    console.log('🔄 Bắt đầu tải dữ liệu từ Firebase...');
-    setLoading(true);
-    setError(null);
-    
+  const loadMemoriesFromFirebase = async () => {
     try {
-      console.log('📡 Kết nối đến Firestore...');
-      const querySnapshot = await getDocs(collection(db, 'memories'));
+      console.log('🔄 Bắt đầu tải dữ liệu từ Firebase...');
+      
+      // Timeout 5 giây
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 5000)
+      );
+      
+      const firebasePromise = getDocs(collection(db, 'memories'));
+      
+      const querySnapshot = await Promise.race([firebasePromise, timeoutPromise]) as any;
       console.log('✅ Lấy được dữ liệu từ Firestore:', querySnapshot.size, 'documents');
       
-      const memoriesData = querySnapshot.docs.map(doc => {
+      if (querySnapshot.size === 0) {
+        console.log('📭 Firestore trống, tạo dữ liệu mặc định...');
+        await createDefaultMemories();
+        return;
+      }
+      
+      const memoriesData = querySnapshot.docs.map((doc: any) => {
         const data = doc.data();
-        console.log('📄 Document data:', data);
         return {
           id: doc.id,
           ...data,
@@ -49,40 +112,82 @@ const MemoryTimeline: React.FC<MemoryTimelineProps> = ({ onNext }) => {
         };
       }) as Memory[];
       
-      console.log('🎯 Memories đã xử lý:', memoriesData);
-      
       // Sắp xếp theo ngày tạo mới nhất
       const sortedMemories = memoriesData.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
       setMemories(sortedMemories);
-      console.log('✅ Đã tải thành công', sortedMemories.length, 'kỷ niệm');
+      console.log('✅ Đã cập nhật với dữ liệu từ Firebase:', sortedMemories.length, 'kỷ niệm');
       
     } catch (error) {
-      console.error('❌ Lỗi khi tải dữ liệu:', error);
-      setError(error instanceof Error ? error.message : 'Lỗi không xác định');
+      console.error('❌ Lỗi khi tải dữ liệu từ Firebase:', error);
+      // Giữ nguyên dữ liệu mặc định nếu có lỗi
+      console.log('🔄 Giữ nguyên dữ liệu mặc định');
+    }
+  };
+
+  const createDefaultMemories = async () => {
+    try {
+      console.log('🔄 Tạo dữ liệu mặc định trong Firebase...');
       
-      // Fallback to default memories if Firebase fails
-      console.log('🔄 Sử dụng dữ liệu mặc định...');
-      setMemories([
+      const defaultMemories = [
         {
-          id: '1',
+          id: 'default-1',
           title: "Lần đầu gặp nhau",
-          date: "15/03/2023",
-          description: "Khoảnh khắc đầu tiên anh nhìn thấy em, tim anh đã biết ngay đó là định mệnh...",
+          date: "2024-01-15",
+          description: "Khoảnh khắc đầu tiên anh nhìn thấy em, tim anh đã biết ngay đó là định mệnh. Em mặc chiếc váy trắng, nụ cười tỏa sáng như ánh nắng ban mai...",
           location: "Quán cà phê nhỏ",
           imageUrl: "https://images.pexels.com/photos/2363825/pexels-photo-2363825.jpeg?auto=compress&cs=tinysrgb&w=800",
           createdAt: new Date()
         },
         {
-          id: '2',
+          id: 'default-2',
           title: "Tin nhắn đầu tiên",
-          date: "18/03/2023",
-          description: "Anh run run gõ từng chữ, sợ em sẽ không trả lời. Nhưng em đã trả lời, và trái tim anh như được thắp sáng...",
+          date: "2024-01-18",
+          description: "Anh run run gõ từng chữ, sợ em sẽ không trả lời. Nhưng em đã trả lời, và trái tim anh như được thắp sáng. Từ đó, mỗi tin nhắn đều là một món quà quý giá...",
           imageUrl: "https://images.pexels.com/photos/1262971/pexels-photo-1262971.jpeg?auto=compress&cs=tinysrgb&w=800",
           createdAt: new Date()
+        },
+        {
+          id: 'default-3',
+          title: "Buổi hẹn đầu tiên",
+          date: "2024-01-25",
+          description: "Chúng ta cùng đi xem phim, anh thậm chí không nhớ phim gì vì chỉ chăm chú nhìn nụ cười của em. Khoảnh khắc đó, anh biết mình đã yêu em từ lâu rồi...",
+          location: "Rạp chiếu phim",
+          imageUrl: "https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=800",
+          createdAt: new Date()
+        },
+        {
+          id: 'default-4',
+          title: "Lần đầu nắm tay",
+          date: "2024-02-02",
+          description: "Khi anh nắm lấy tay em, cả thế giới như ngừng lại. Ấm áp và hoàn hảo. Em không rút tay ra, và anh biết đó là dấu hiệu của tình yêu...",
+          location: "Công viên",
+          imageUrl: "https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=800",
+          createdAt: new Date()
+        },
+        {
+          id: 'default-5',
+          title: "Kỷ niệm đặc biệt",
+          date: "2024-02-20",
+          description: "Ngày chúng ta cùng xem hoàng hôn, em nói rằng em muốn có thêm nhiều khoảnh khắc như thế này. Anh hứa sẽ tạo ra vô vàn khoảnh khắc đẹp cho em...",
+          location: "Bãi biển",
+          imageUrl: "https://images.pexels.com/photos/1416736/pexels-photo-1416736.jpeg?auto=compress&cs=tinysrgb&w=800",
+          createdAt: new Date()
         }
-      ]);
-    } finally {
-      setLoading(false);
+      ];
+
+      const addPromises = defaultMemories.map(memory => 
+        addDoc(collection(db, 'memories'), memory)
+      );
+      
+      await Promise.all(addPromises);
+      console.log('✅ Đã tạo', defaultMemories.length, 'kỷ niệm mặc định trong Firebase');
+      
+      // Cập nhật UI với dữ liệu mới
+      setMemories(defaultMemories);
+      
+    } catch (error) {
+      console.error('❌ Lỗi khi tạo dữ liệu mặc định:', error);
+      // Giữ nguyên dữ liệu mặc định nếu có lỗi
     }
   };
 
