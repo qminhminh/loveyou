@@ -5,6 +5,7 @@ import AdminPanel from './components/AdminPanel';
 import FirebaseTest from './components/FirebaseTest';
 import FirebaseDataInitializer from './components/FirebaseDataInitializer';
 import FirebaseDebugger from './components/FirebaseDebugger';
+import AnimationDemo from './components/AnimationDemo';
 
 function App() {
   return (
@@ -23,6 +24,9 @@ function App() {
       
       {/* Route debug - debug chi tiết */}
       <Route path="/debug" element={<FirebaseDebugger />} />
+      
+      {/* Route animation demo - showcase tất cả animation */}
+      <Route path="/animations" element={<AnimationDemo />} />
       
       {/* Redirect mặc định về trang chính */}
       <Route path="*" element={<Navigate to="/" replace />} />
